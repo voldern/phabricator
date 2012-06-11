@@ -187,6 +187,36 @@ final class PhabricatorLoginController
 
   //    $panel->setCreateButton('Register New Account', '/login/register/');
       $forms['Phabricator Login'] = $form;
+
+      if (PhabricatorEnv::getEnvConfig('ldap.auth-enabled') === true) {
+        $ldap_form = new AphrontFormView();
+        $ldap_form
+          ->setUser($request->getUser())
+          ->setAction('/login/ldap/')
+          ->appendChild(
+            id(new AphrontFormTextControl())
+            ->setLabel('LDAP username')
+            ->setName('username')
+            ->setValue($username_or_email))
+          ->appendChild(
+            id(new AphrontFormPasswordControl())
+            ->setLabel('Password')
+            ->setName('password'));
+
+        // TODO: Implement captcha
+        /* if ($require_captcha) { */
+        /*     $ldap_form->appendChild( */
+        /*         id(new AphrontFormRecaptchaControl()) */
+        /*         ->setError($e_captcha)); */
+        /* } */
+
+        $ldap_form
+          ->appendChild(
+            id(new AphrontFormSubmitControl())
+            ->setValue('Login'));
+
+        $forms['LDAP Login'] = $ldap_form;
+      }
     }
 
     $providers = PhabricatorOAuthProvider::getAllProviders();
