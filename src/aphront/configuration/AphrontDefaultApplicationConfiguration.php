@@ -147,8 +147,8 @@ class AphrontDefaultApplicationConfiguration
       ),
 
       '/ldap/' => array(
-          'login/' => 'PhabricatorLDAPLoginController',
-          'unlink/'    => 'PhabricatorLDAPUnlinkController',
+        'login/' => 'PhabricatorLDAPLoginController',
+        'unlink/'    => 'PhabricatorLDAPUnlinkController',
       ),
 
       '/oauthserver/' => array(
