@@ -78,9 +78,6 @@ extends PhabricatorAuthController {
         }
       }
 
-      // get real name from LDAP
-      //$user->setRealName();
-
       if (!strlen($user->getRealName())) {
         $user->setRealName($request->getStr('realname'));
         if (!strlen($user->getRealName())) {

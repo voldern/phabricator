@@ -41,7 +41,6 @@ final class PhabricatorLDAPLoginController extends PhabricatorAuthController {
           $request->getStr('password'));
 
       } catch (Exception $e) {
-        // TODO create error view
         $errors[] = $e->getMessage();
       }
 
@@ -137,14 +136,7 @@ final class PhabricatorLDAPLoginController extends PhabricatorAuthController {
         id(new AphrontFormPasswordControl())
         ->setLabel('Password')
         ->setName('password'));
-
-    // TODO: Implement captcha
-    /* if ($require_captcha) { */
-    /*     $ldap_form->appendChild( */
-    /*         id(new AphrontFormRecaptchaControl()) */
-    /*         ->setError($e_captcha)); */
-    /* } */
-
+    
     $ldap_form
       ->appendChild(
         id(new AphrontFormSubmitControl())

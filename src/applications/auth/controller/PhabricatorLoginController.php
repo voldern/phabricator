@@ -188,7 +188,8 @@ final class PhabricatorLoginController
   //    $panel->setCreateButton('Register New Account', '/login/register/');
       $forms['Phabricator Login'] = $form;
 
-      if (PhabricatorEnv::getEnvConfig('ldap.auth-enabled') === true) {
+      $ldap_provider = new PhabricatorLDAPProvider();
+      if ($ldap_provider->isProviderEnabled()) {
         $ldap_form = new AphrontFormView();
         $ldap_form
           ->setUser($request->getUser())
@@ -202,14 +203,7 @@ final class PhabricatorLoginController
             id(new AphrontFormPasswordControl())
             ->setLabel('Password')
             ->setName('password'));
-
-        // TODO: Implement captcha
-        /* if ($require_captcha) { */
-        /*     $ldap_form->appendChild( */
-        /*         id(new AphrontFormRecaptchaControl()) */
-        /*         ->setError($e_captcha)); */
-        /* } */
-
+        
         $ldap_form
           ->appendChild(
             id(new AphrontFormSubmitControl())

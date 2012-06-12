@@ -130,9 +130,7 @@ final class PhabricatorUserSettingsController
 
     $ldap_provider = new PhabricatorLDAPProvider();
     if ($ldap_provider->isProviderEnabled()) {
-      $sidenav->addSpacer();
-      $sidenav->addLabel('Linked Accounts');
-      $sidenav->addFilter('ldap', 'LDAP Account');
+      $items['ldap'] = 'LDAP Account';
     }
 
     if ($items) {

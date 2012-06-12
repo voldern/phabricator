@@ -39,7 +39,7 @@ final class PhabricatorLDAPProvider {
   }
 
   public function retrieveUserRealName() {
-    $name_attributes = PhabricatorEnv::getEnvConfig('ldap.real_name_attributesg');
+    $name_attributes = PhabricatorEnv::getEnvConfig('ldap.real_name_attributes');
 
     $real_name = '';
     if (is_array($name_attributes)) {
