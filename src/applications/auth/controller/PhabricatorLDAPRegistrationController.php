@@ -152,7 +152,7 @@ extends PhabricatorAuthController {
     // Strip the URI down to the path, because otherwise we'll trigger
     // external CSRF protection (by having a protocol in the form "action")
     // and generate a form with no CSRF token.
-    $action_uri = new PhutilURI('/login/ldap/');
+    $action_uri = new PhutilURI('/ldap/login/');
     $action_path = $action_uri->getPath();
 
     $form = new AphrontFormView();

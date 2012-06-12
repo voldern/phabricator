@@ -33,10 +33,6 @@ final class PhabricatorLDAPLoginController extends PhabricatorAuthController {
     }
     
     $current_user = $this->getRequest()->getUser();
-    if ($current_user->getPHID()) {
-      throw new Exception('You are already logged in');
-    }
-    
     $request = $this->getRequest();
 
     if ($request->isFormPost()) {
@@ -52,6 +48,52 @@ final class PhabricatorLDAPLoginController extends PhabricatorAuthController {
       if (empty($errors)) {
         $ldap_info = $this->retrieveLDAPInfo($this->provider);
 
+        if ($current_user->getPHID()) {
+          if ($ldap_info->getID()) {
+            $existing_ldap = id(new PhabricatorUserLDAPInfo())->loadOneWhere(
+              'userID = %d',
+              $current_user->getID());
+            
+            if ($ldap_info->getUserID() != $current_user->getID() || $existing_ldap) {
+              $dialog = new AphrontDialogView();
+              $dialog->setUser($current_user);
+              $dialog->setTitle('Already Linked to Another Account');
+              $dialog->appendChild(
+                '<p>The LDAP account you just authorized is already linked to '.
+                'another Phabricator account. Before you can link it to a different '.
+                'LDAP account, you must unlink the old account.</p>'
+              );
+              $dialog->addCancelButton('/settings/page/ldap/');
+              
+              return id(new AphrontDialogResponse())->setDialog($dialog);
+            } else {
+              return id(new AphrontRedirectResponse())
+                ->setURI('/settings/page/ldap/');
+            }
+          }
+
+          if (!$request->isDialogFormPost()) {
+            $dialog = new AphrontDialogView();
+            $dialog->setUser($current_user);
+            $dialog->setTitle('Link LDAP Account');
+            $dialog->appendChild(
+              '<p>Link your LDAP account to your Phabricator account?</p>');
+            $dialog->addHiddenInput('username', $request->getStr('username'));
+            $dialog->addHiddenInput('password', $request->getStr('password'));
+            $dialog->addSubmitButton('Link Accounts');
+            $dialog->addCancelButton('/settings/page/ldap/');
+            
+            return id(new AphrontDialogResponse())->setDialog($dialog);
+          }
+
+          $ldap_info->setUserID($current_user->getID());
+
+          $this->saveLDAPInfo($ldap_info);
+
+          return id(new AphrontRedirectResponse())
+            ->setURI('/settings/page/ldap/');
+        }
+        
         if ($ldap_info->getID()) {
           $unguarded = AphrontWriteGuard::beginScopedUnguardedWrites();
 
@@ -82,10 +124,10 @@ final class PhabricatorLDAPLoginController extends PhabricatorAuthController {
     }
     
     $ldap_username = $request->getCookie('phusr');
-    $ldapForm = new AphrontFormView();
-    $ldapForm
+    $ldap_form = new AphrontFormView();
+    $ldap_form
       ->setUser($request->getUser())
-      ->setAction('/login/ldap/')
+      ->setAction('/ldap/login/')
       ->appendChild(
         id(new AphrontFormTextControl())
         ->setLabel('LDAP username')
@@ -98,22 +140,22 @@ final class PhabricatorLDAPLoginController extends PhabricatorAuthController {
 
     // TODO: Implement captcha
     /* if ($require_captcha) { */
-    /*     $ldapForm->appendChild( */
+    /*     $ldap_form->appendChild( */
     /*         id(new AphrontFormRecaptchaControl()) */
     /*         ->setError($e_captcha)); */
     /* } */
 
-    $ldapForm
+    $ldap_form
       ->appendChild(
         id(new AphrontFormSubmitControl())
         ->setValue('Login'));
 
-    $forms['LDAP login'] = $ldapForm;
+    $forms['LDAP login'] = $ldap_form;
     
     $panel = new AphrontPanelView();
     $panel->setWidth(AphrontPanelView::WIDTH_FORM);
     $panel->appendChild('<h1>LDAP login</h1>');
-    $panel->appendChild($ldapForm);        
+    $panel->appendChild($ldap_form);        
 
     if (isset($errors) && count($errors) > 0) {
       $error_view = new AphrontErrorView();
@@ -123,7 +165,7 @@ final class PhabricatorLDAPLoginController extends PhabricatorAuthController {
 
     return $this->buildStandardPageResponse(
       array(
-        $error_view,
+        isset($error_view) ? $error_view : null,
         $panel,
       ),
       array(

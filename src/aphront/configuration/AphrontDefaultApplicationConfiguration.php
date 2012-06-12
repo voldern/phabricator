@@ -130,7 +130,6 @@ class AphrontDefaultApplicationConfiguration
       '/login/' => array(
         '' => 'PhabricatorLoginController',
         'email/' => 'PhabricatorEmailLoginController',
-        'ldap/' => 'PhabricatorLDAPLoginController',
         'etoken/(?P<token>\w+)/' => 'PhabricatorEmailTokenController',
         'refresh/' => 'PhabricatorRefreshCSRFController',
         'validate/' => 'PhabricatorLoginValidateController',
@@ -145,6 +144,11 @@ class AphrontDefaultApplicationConfiguration
           'diagnose/'  => 'PhabricatorOAuthDiagnosticsController',
           'unlink/'    => 'PhabricatorOAuthUnlinkController',
         ),
+      ),
+
+      '/ldap/' => array(
+          'login/' => 'PhabricatorLDAPLoginController',
+          'unlink/'    => 'PhabricatorLDAPUnlinkController',
       ),
 
       '/oauthserver/' => array(

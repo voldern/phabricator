@@ -192,7 +192,7 @@ final class PhabricatorLoginController
         $ldap_form = new AphrontFormView();
         $ldap_form
           ->setUser($request->getUser())
-          ->setAction('/login/ldap/')
+          ->setAction('/ldap/login/')
           ->appendChild(
             id(new AphrontFormTextControl())
             ->setLabel('LDAP username')
