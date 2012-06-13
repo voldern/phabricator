@@ -48,13 +48,33 @@ extends PhabricatorAuthController {
     $e_username = true;
     $e_email = true;
     $e_realname = true;
-    
+
     $user = new PhabricatorUser();
     $user->setUsername();
     $user->setRealname($provider->retrieveUserRealName());
 
     $new_email = $provider->retrieveUserEmail();
-    
+
+    if ($new_email) {
+      // If the user's LDAP provider account has an email address but the
+      // email address domain is not allowed by the Phabricator configuration,
+      // we just pretend the provider did not supply an address.
+      //
+      // For instance, if the user uses LDAP Auth and their email address
+      // is "joe@personal.com" but Phabricator is configured to require users
+      // use "@company.com" addresses, we show a prompt below and tell the user
+      // to provide their "@company.com" address. They can still use the LDAP
+      // account to login, they just need to associate their account with an
+      // allowed address.
+      //
+      // If the email address is fine, we just use it and don't prompt the user.
+      if (!PhabricatorUserEmail::isAllowedAddress($new_email)) {
+        $new_email = null;
+      }
+    }
+
+    $show_email_input = ($new_email === null);
+
     if ($request->isFormPost()) {
       $user->setUsername($request->getStr('username'));
       $username = $user->getUsername();
@@ -63,7 +83,7 @@ extends PhabricatorAuthController {
         $errors[] = 'Username is required.';
       } else if (!PhabricatorUser::validateUsername($username)) {
         $e_username = 'Invalid';
-        $errors[] = 'Username must consist of only numbers and letters.';
+        $errors[] = PhabricatorUser::describeValidUsername();
       } else {
         $e_username = null;
       }
@@ -78,6 +98,13 @@ extends PhabricatorAuthController {
         }
       }
 
+      if ($new_email) {
+        if (!PhabricatorUserEmail::isAllowedAddress($new_email)) {
+          $e_email = 'Invalid';
+          $errors[] = PhabricatorUserEmail::describeAllowedAddresses();
+        }
+      }
+
       if (!strlen($user->getRealName())) {
         $user->setRealName($request->getStr('realname'));
         if (!strlen($user->getRealName())) {
@@ -89,7 +116,7 @@ extends PhabricatorAuthController {
       }
 
       if (!$errors) {
-        try {                    
+        try {
           // NOTE: We don't verify LDAP email addresses by default because
           // LDAP providers might associate email addresses with accounts that
           // haven't actually verified they own them. We could selectively
@@ -113,7 +140,7 @@ extends PhabricatorAuthController {
           $request->setCookie('phsid', $session_key);
 
           $email_obj->sendVerificationEmail($user);
-          
+
           return id(new AphrontRedirectResponse())->setURI('/');
         } catch (AphrontQueryDuplicateKeyException $exception) {
 
@@ -168,7 +195,7 @@ extends PhabricatorAuthController {
         ->setLabel('Password')
         ->setName('password'));
 
-    if ($provider->retrieveUserEmail() === null) {
+    if ($show_email_input) {
       $form->appendChild(
         id(new AphrontFormTextControl())
         ->setLabel('Email')

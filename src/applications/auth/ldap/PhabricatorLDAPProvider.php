@@ -1,5 +1,21 @@
 <?php
 
+/*
+ * Copyright 2012 Facebook, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 final class PhabricatorLDAPProvider {
   private $userData;
   private $connection;
@@ -17,7 +33,7 @@ final class PhabricatorLDAPProvider {
   public function isProviderEnabled() {
     return PhabricatorEnv::getEnvConfig('ldap.auth-enabled');
   }
-  
+
   public function getHostname() {
     return PhabricatorEnv::getEnvConfig('ldap.hostname');
   }
@@ -39,7 +55,8 @@ final class PhabricatorLDAPProvider {
   }
 
   public function retrieveUserRealName() {
-    $name_attributes = PhabricatorEnv::getEnvConfig('ldap.real_name_attributes');
+    $name_attributes = PhabricatorEnv::getEnvConfig(
+        'ldap.real_name_attributes');
 
     $real_name = '';
     if (is_array($name_attributes)) {
@@ -48,7 +65,7 @@ final class PhabricatorLDAPProvider {
           $real_name .= $this->userData[$attribute][0] . ' ';
         }
       }
-      
+
       trim($real_name);
     } else if (isset($this->userData[$name_attributes][0])) {
       $real_name = $this->userData[$name_attributes][0];
@@ -64,11 +81,11 @@ final class PhabricatorLDAPProvider {
   public function retrieveUsername() {
     return $this->userData[$this->getSearchAttribute()][0];
   }
-  
+
   public function getConnection() {
     if (!isset($this->connection)) {
       $this->connection = ldap_connect($this->getHostname());
-      
+
       if (!$this->connection) {
         throw new Exception('Could not connect to LDAP host at ' .
           $this->getHostname());
@@ -91,7 +108,8 @@ final class PhabricatorLDAPProvider {
     }
 
     $result = ldap_bind($this->getConnection(),
-              $this->getSearchAttribute() . '=' . $username . ','.$this->getBaseDN(),
+              $this->getSearchAttribute() . '=' . $username . ',' .
+              $this->getBaseDN(),
               $password);
 
     if (!$result) {

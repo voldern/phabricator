@@ -203,7 +203,7 @@ final class PhabricatorLoginController
             id(new AphrontFormPasswordControl())
             ->setLabel('Password')
             ->setName('password'));
-        
+
         $ldap_form
           ->appendChild(
             id(new AphrontFormSubmitControl())

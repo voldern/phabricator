@@ -73,7 +73,7 @@ class AphrontDefaultApplicationConfiguration
         'edit/(?:(?P<id>\d+)/(?:(?P<view>\w+)/)?)?'
           => 'PhabricatorPeopleEditController',
       ),
-      '/p/(?P<username>\w+)/(?:(?P<page>\w+)/)?'
+      '/p/(?P<username>[\w._-]+)/(?:(?P<page>\w+)/)?'
         => 'PhabricatorPeopleProfileController',
       '/conduit/' => array(
         '' => 'PhabricatorConduitListController',
@@ -428,6 +428,8 @@ class AphrontDefaultApplicationConfiguration
 
       '/notification/test/' => 'PhabricatorNotificationTestController',
       '/notification/panel/' => 'PhabricatorNotificationPanelController',
+      '/notification/individual/'
+            => 'PhabricatorNotificationIndividualController',
       '/flag/' => array(
         '' => 'PhabricatorFlagListController',
         'view/(?P<view>[^/]+)/' => 'PhabricatorFlagListController',

@@ -551,7 +551,7 @@ return array(
 // -- LDAP Auth ----------------------------------------------------- //
   // Enable ldap auth
   'ldap.auth-enabled'         => false,
-  
+
   // The LDAP server hostname
   'ldap.hostname' => '',
 

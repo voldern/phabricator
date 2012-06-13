@@ -26,7 +26,7 @@ final class PhabricatorUserLDAPSettingsPanelController
     $ldap_info = id(new PhabricatorUserLDAPInfo())->loadOneWhere(
       'userID = %d',
       $user->getID());
-    
+
     $forms = array();
 
     if (!$ldap_info) {
@@ -37,8 +37,8 @@ final class PhabricatorUserLDAPSettingsPanelController
         ->setAction('/ldap/login/')
         ->appendChild(
           '<p class="aphront-form-instructions">There is currently no '.
-          'LDAP account linked to your Phabricator account. You can like an account, '.
-          'which will allow you to use it to log into Phabricator</p>')
+          'LDAP account linked to your Phabricator account. You can link an ' .
+          'account, which will allow you to use it to log into Phabricator</p>')
         ->appendChild(
           id(new AphrontFormTextControl())
           ->setLabel('LDAP username')
@@ -50,7 +50,7 @@ final class PhabricatorUserLDAPSettingsPanelController
           ->appendChild(
             id(new AphrontFormSubmitControl())
             ->setValue("Link LDAP Account \xC2\xBB"));
-      
+
       $forms['Link Account'] = $unlink_form;
     } else {
       $unlink = 'Unlink LDAP Account';
@@ -64,7 +64,7 @@ final class PhabricatorUserLDAPSettingsPanelController
         ->appendChild(
           id(new AphrontFormSubmitControl())
           ->addCancelButton('/ldap/unlink/', $unlink));
-      
+
       $forms['Unlink Account'] = $unlink_form;
     }
 

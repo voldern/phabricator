@@ -18,7 +18,7 @@
 
 final class PhabricatorLDAPLoginController extends PhabricatorAuthController {
   private $provider;
-  
+
   public function shouldRequireLogin() {
     return false;
   }
@@ -31,7 +31,7 @@ final class PhabricatorLDAPLoginController extends PhabricatorAuthController {
     if (!$this->provider->isProviderEnabled()) {
       return new Aphront400Response();
     }
-    
+
     $current_user = $this->getRequest()->getUser();
     $request = $this->getRequest();
 
@@ -52,18 +52,19 @@ final class PhabricatorLDAPLoginController extends PhabricatorAuthController {
             $existing_ldap = id(new PhabricatorUserLDAPInfo())->loadOneWhere(
               'userID = %d',
               $current_user->getID());
-            
-            if ($ldap_info->getUserID() != $current_user->getID() || $existing_ldap) {
+
+            if ($ldap_info->getUserID() != $current_user->getID() ||
+                $existing_ldap) {
               $dialog = new AphrontDialogView();
               $dialog->setUser($current_user);
               $dialog->setTitle('Already Linked to Another Account');
               $dialog->appendChild(
                 '<p>The LDAP account you just authorized is already linked to '.
-                'another Phabricator account. Before you can link it to a different '.
-                'LDAP account, you must unlink the old account.</p>'
+                'another Phabricator account. Before you can link it to a '.
+                'different LDAP account, you must unlink the old account.</p>'
               );
               $dialog->addCancelButton('/settings/page/ldap/');
-              
+
               return id(new AphrontDialogResponse())->setDialog($dialog);
             } else {
               return id(new AphrontRedirectResponse())
@@ -81,7 +82,7 @@ final class PhabricatorLDAPLoginController extends PhabricatorAuthController {
             $dialog->addHiddenInput('password', $request->getStr('password'));
             $dialog->addSubmitButton('Link Accounts');
             $dialog->addCancelButton('/settings/page/ldap/');
-            
+
             return id(new AphrontDialogResponse())->setDialog($dialog);
           }
 
@@ -92,16 +93,17 @@ final class PhabricatorLDAPLoginController extends PhabricatorAuthController {
           return id(new AphrontRedirectResponse())
             ->setURI('/settings/page/ldap/');
         }
-        
+
         if ($ldap_info->getID()) {
           $unguarded = AphrontWriteGuard::beginScopedUnguardedWrites();
 
-          $known_user = id(new PhabricatorUser())->load($ldap_info->getUserID());
+          $known_user = id(new PhabricatorUser())->load(
+              $ldap_info->getUserID());
 
           $session_key = $known_user->establishSession('web');
-          
+
           $this->saveLDAPInfo($ldap_info);
-          
+
           $request->setCookie('phusr', $known_user->getUsername());
           $request->setCookie('phsid', $session_key);
 
@@ -113,15 +115,16 @@ final class PhabricatorLDAPLoginController extends PhabricatorAuthController {
 
           return id(new AphrontRedirectResponse())->setURI((string)$uri);
         }
-        
-        $controller = newv('PhabricatorLDAPRegistrationController', array($this->getRequest()));
+
+        $controller = newv('PhabricatorLDAPRegistrationController',
+                      array($this->getRequest()));
         $controller->setLDAPProvider($this->provider);
         $controller->setLDAPInfo($ldap_info);
-        
+
         return $this->delegateToController($controller);
       }
     }
-    
+
     $ldap_username = $request->getCookie('phusr');
     $ldap_form = new AphrontFormView();
     $ldap_form
@@ -136,18 +139,16 @@ final class PhabricatorLDAPLoginController extends PhabricatorAuthController {
         id(new AphrontFormPasswordControl())
         ->setLabel('Password')
         ->setName('password'));
-    
+
     $ldap_form
       ->appendChild(
         id(new AphrontFormSubmitControl())
         ->setValue('Login'));
 
-    $forms['LDAP login'] = $ldap_form;
-    
     $panel = new AphrontPanelView();
     $panel->setWidth(AphrontPanelView::WIDTH_FORM);
     $panel->appendChild('<h1>LDAP login</h1>');
-    $panel->appendChild($ldap_form);        
+    $panel->appendChild($ldap_form);
 
     if (isset($errors) && count($errors) > 0) {
       $error_view = new AphrontErrorView();
